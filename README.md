@@ -214,7 +214,7 @@ You can now start the Vufind setup. Go to ```http://<hostname-or-ip/vufind/Insta
 
 You should be presented with the auto configure screen.
 
-<img src="002-01-vufind-auto-configure.png" alt="Vufind auto configure screen" width="400"/>
+<img src="02-001-vufind-auto-configure.png" alt="Vufind auto configure screen" width="400"/>
 
 Press Fix next to Basic Configuration and then go back to go to the initial auto configure screen.
 

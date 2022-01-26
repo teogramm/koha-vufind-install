@@ -459,6 +459,8 @@ So after following this guide the basic functionality of Vufind and Koha should 
 
 Recommended actions:
  
+* Check out the Koha [Implementation checklist](https://koha-community.org/manual/latest/en/html/implementation_checklist.html) 
+to make your library fully functional.
 * Review ```/usr/local/vufind/local/config/vufind/config.ini``` and change any options you want. The file is huge and has 
 many options, however you should at least change ```email``` and ```title```.
 * Configure an SMTP server for Koha, so your patrons can get email notifications.

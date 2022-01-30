@@ -1,0 +1,13 @@
+[Unit]
+Description=Zebra server
+Requires=koha-create-dirs@%i.service
+After=koha-create-dirs@%i.service
+
+[Service]
+User=%i-koha
+Type=forking
+PIDFile=/var/run/koha/%i/zebrasrv.pid
+ExecStart=/usr/bin/zebrasrv -D -T -p /var/run/koha/%i/zebrasrv.pid -f /etc/koha/sites/%i/koha-conf.xml -l /var/log/koha/%i/zebrasrv.log
+
+[Install]
+WantedBy=multi-user.target

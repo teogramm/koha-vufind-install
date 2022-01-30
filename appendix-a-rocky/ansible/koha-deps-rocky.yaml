@@ -1,0 +1,255 @@
+---
+- name: Check if Powertools repo is enabled
+  command: dnf repolist
+  register: dnf_repos
+  changed_when: False
+  args:
+    warn: false
+
+- name: Enable PowerTools 
+  command: dnf config-manager --set-enabled powertools
+  when: "'powertools' not in dnf_repos.stdout"
+  args:
+    warn: false
+  become: yes
+  
+- name: Enable EPEL repository
+  dnf:
+    name:
+      - epel-release
+    state: latest
+  become: yes
+  
+- name: Add Indexdata GPG key
+  rpm_key:
+    state: present
+    key: http://ftp.indexdata.com/pub/yum/centos/8/RPM-GPG-KEY-indexdata
+  become: yes
+    
+- name: Add idzebra repository
+  yum_repository:
+    name: indexdata-main
+    description: Index Data Main Repository
+    baseurl: https://ftp.indexdata.com/pub/yum/centos/8/main/$basearch
+  become: yes
+  
+- name: Add Lux repository
+  dnf: name=http://repo.iotti.biz/CentOS/5/noarch/lux-release-0-1.noarch.rpm state=present disable_gpg_check=yes
+  become: yes
+
+- name: Add Lux key
+  rpm_key:
+    state: present
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LUX
+  become: yes
+    
+- name: Install mpm-itk
+  dnf: name=httpd-itk state=present
+  become: yes
+  
+- name: Install RabbitMQ repository
+  dnf: name=centos-release-rabbitmq-38 state=present
+  become: yes
+  
+- name: Install RabbitMQ server
+  dnf: name=rabbitmq-server state=present
+  become: yes
+  
+- name: Install non-perl dependencies
+  dnf:
+    name:
+      - httpd
+      - idzebra-2.0
+      - libidzebra-2.0
+      - libidzebra-2.0-devel
+      - libidzebra-2.0-modules
+      - memcached
+      - gcc
+      - make
+      - yaz
+      - libyaz5
+      - libyaz5-devel
+      - libuuid-devel
+      - fribidi
+      - fribidi-devel
+      - pwgen
+      - xmlstarlet
+      - redhat-lsb-core
+    state: present
+  become: yes
+
+- name: Install Perl and Cpanm
+  dnf: name=perl,perl-App-cpanminus state=present
+  become: yes
+  
+- name: Install Perl packages from the repositories
+  dnf:
+    name:
+      - GraphicsMagick-perl 
+      - perl-AnyEvent-HTTP 
+      - perl-Archive-Extract 
+      - perl-Array-Utils 
+      - perl-Business-ISBN 
+      - perl-Bytes-Random-Secure 
+      - perl-Cache-Memcached 
+      - perl-CGI 
+      - perl-CGI-Compile 
+      - perl-CGI-Emulate-PSGI 
+      - perl-Class-Accessor 
+      - perl-Class-Inspector 
+      - perl-Crypt-Eksblowfish 
+      - perl-Date-Calc 
+      - perl-Date-Manip 
+      - perl-DateTime-Event-ICal 
+      - perl-DateTime-Format-ICal 
+      - perl-DateTime-Format-MySQL 
+      - perl-DateTimeX-Easy 
+      - perl-DBD-Mock 
+      - perl-DBD-MySQL 
+      - perl-DBI 
+      - perl-DBIx-RunSQL 
+      - perl-Devel-Cover 
+      - perl-Email-Address 
+      - perl-Email-MessageID 
+      - perl-Email-Sender 
+      - perl-ExtUtils-PkgConfig 
+      - perl-File-Slurp 
+      - perl-Font-TTF 
+      - perl-GD 
+      - perl-GD-Barcode 
+      - perl-HTML-Formatter 
+      - perl-HTML-Parser 
+      - perl-HTML-Scrubber 
+      - perl-HTTP-Cookies 
+      - perl-HTTP-Daemon 
+      - perl-HTTP-Message 
+      - perl-JSON
+      - perl-LDAP 
+      - perl-libintl-perl 
+      - perl-libwww-perl 
+      - perl-Log-Log4perl 
+      - perl-LWP-Protocol-https 
+      - perl-MIME-Lite 
+      - perl-Module-Pluggable 
+      - perl-Mojolicious 
+      - perl-Moo 
+      - perl-Net-CIDR 
+      - perl-Net-Netmask 
+      - perl-Net-Server 
+      - perl-Net-SFTP-Foreign 
+      - perl-Number-Format 
+      - perl-Parallel-ForkManager 
+      - perl-Plack-Test 
+      - perl-Plack-Middleware-ReverseProxy 
+      - perl-Readonly 
+      - perl-Sereal-Decoder 
+      - perl-Sereal-Encoder 
+      - perl-String-Random 
+      - perl-Sys-CPU 
+      - perl-Template-Toolkit 
+      - perl-Test-Deep 
+      - perl-Test-Exception 
+      - perl-Test-MockModule 
+      - perl-Test-MockObject 
+      - perl-Test-MockTime 
+      - perl-Test-Mojo 
+      - perl-Test-Warn 
+      - perl-Test-WWW-Mechanize 
+      - perl-Text-CSV 
+      - perl-Text-CSV_XS 
+      - perl-Text-Iconv 
+      - perl-Text-Unidecode 
+      - perl-Time-Fake 
+      - perl-Try-Tiny 
+      - perl-UNIVERSAL-require 
+      - perl-UNIVERSAL-can 
+      - perl-XML-Dumper 
+      - perl-XML-LibXML 
+      - perl-XML-LibXSLT 
+      - perl-XML-RSS 
+      - perl-XML-SAX 
+      - perl-XML-SAX-Writer 
+      - perl-XML-Simple 
+      - perl-XML-Writer
+  become: yes
+
+- name: Install Perl dependencies from CPAN
+  cpanm: name={{item}} system_lib=yes
+  with_items:
+    - Algorithm::CheckDigits 
+    - Alien::Tidyp 
+    - AnyEvent 
+    - Authen::CAS::Client 
+    - Biblio::EndnoteStyle 
+    - Business::ISSN 
+    - Cache::Memcached::Fast::Safe 
+    - CGI::Session 
+    - CGI::Session::Driver::memcached 
+    - Class::Factory::Util 
+    - Clone 
+    - Data::ICal 
+    - DateTime 
+    - DateTime::TimeZone 
+    - DBD::SQLite2 
+    - DBIx::Class::Schema::Loader 
+    - Email::Date 
+    - Email::Stuffer 
+    - Exception::Class 
+    - Gravatar::URL 
+    - HTTPD::Bench::ApacheBench 
+    - HTTP::OAI 
+    - JSON::Validator 
+    - JSON::Validator::Ref 
+    # This does not install properly, and we need to force install it
+    # - JSON::Validator::OpenAPI::Mojolicious 
+    - Library::CallNumber::LC 
+    - Lingua::Ispell 
+    - Lingua::Stem 
+    - Lingua::Stem::Snowball 
+    - List::MoreUtils 
+    - Locale::Currency::Format 
+    - Locale::PO 
+    - Locale::XGettext::TT2 
+    - MARC::Charset 
+    - MARC::File::XML 
+    - MARC::Record 
+    - MARC::Record::MiJ 
+    - Module::Bundled::Files 
+    - Mojolicious::Plugin::OpenAPI 
+    - Mojo::JWT
+    - Net::OAuth2::AuthorizationServer 
+    - Net::Stomp 
+    - Net::Z3950::SimpleServer 
+    - OpenOffice::OODoc 
+    - PDF::API2 
+    - PDF::FromHTML 
+    - PDF::Reuse 
+    - PDF::Reuse::Barcode 
+    - PDF::Table 
+    - Plack::Middleware::LogWarn 
+    - Schedule::At 
+    - Search::Elasticsearch 
+    - Selenium::Remote::Driver 
+    - SMS::Send 
+    - Starman 
+    - Template::Plugin::HtmlToText 
+    - Template::Plugin::JSON::Escape 
+    - Template::Plugin::Stash 
+    - Test::DBIx::Class 
+    - Test::Strict 
+    - Test::YAML::Valid 
+    - Text::Bidi 
+    - Text::CSV::Encoded 
+    - Text::CSV::Unicode 
+    - Text::PDF 
+    - UUID 
+    - WebService::ILS 
+    - WWW::CSRF 
+    - YAML::XS
+  become: yes
+
+- name: Force install JSON::Validator::OpenAPI::Mojolicious Net::Z3950::ZOOM 
+  command: cpanm --sudo -n JSON::Validator::OpenAPI::Mojolicious Net::Z3950::ZOOM 
+  become: yes
+  register: cpanm_json_mojolicious
+  changed_when: "'JSON::Validator::OpenAPI::Mojolicious is up to date.' not in cpanm_json_mojolicious.stdout"

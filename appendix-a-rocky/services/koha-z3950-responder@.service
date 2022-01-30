@@ -1,0 +1,17 @@
+[Unit]
+Description='Z3950 responder for %I Koha Library'
+Requires=koha-create-dirs@%i.service
+After=koha-create-dirs@%i.service
+
+[Service]
+User=%i-koha
+Type=forking
+Environment=PERL5LIB="/usr/share/koha/lib"
+Environment=KOHA_CONF="/etc/koha/sites/%i/koha-conf.xml"
+Environment=KOHA_HOME="/usr/share/koha"
+WorkingDirectory=~
+PIDFile=/var/run/koha/%i/z3950-responder.pid
+ExecStart=/usr/bin/perl /usr/share/koha/bin/z3950_responder.pl -c /etc/koha/sites/%i/z3950 -u %i-koha -p /var/run/koha/%i/z3950-responder.pid -l /var/log/koha/%i/z3950.log -D -d %i-koha-z3950
+
+[Install]
+WantedBy=multi-user.target

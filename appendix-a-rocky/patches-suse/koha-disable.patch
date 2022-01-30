@@ -1,0 +1,11 @@
+--- koha-disable	2022-02-01 18:11:41.258000000 +0200
++++ /usr/share/koha/bin/koha-disable	2022-02-01 18:10:00.875000000 +0200
+@@ -86,7 +86,7 @@
+ done
+ 
+ if [ "$restart_apache" = "yes" ]; then
+-    /etc/init.d/apache2 restart
++    systemctl restart apache2
+ fi
+ 
+ exit 0

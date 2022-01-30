@@ -1,0 +1,12 @@
+[Unit]
+Description='Create koha directories for %I'
+
+[Service]
+Type=oneshot
+Environment=PERL5LIB="/usr/share/koha/lib"
+Environment=KOHA_CONF="/etc/koha/sites/%i/koha-conf.xml"
+Environment=KOHA_HOME="/usr/share/koha"
+ExecStart=/usr/share/koha/bin/koha-create-dirs %i
+
+[Install]
+WantedBy=multi-user.target

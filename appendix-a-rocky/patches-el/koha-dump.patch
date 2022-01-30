@@ -1,0 +1,13 @@
+--- koha-dump	2022-02-01 18:01:29.630000000 +0200
++++ /usr/share/koha/bin/koha-dump	2022-02-01 17:36:38.699000000 +0200
+@@ -104,8 +104,8 @@
+ 
+         tar -czf "$metadump" -C / $excludes \
+             "etc/koha/sites/$name" \
+-            "etc/apache2/sites-available/$instancefile" \
+-            "etc/apache2/sites-enabled/$instancefile" \
++            "etc/apache2/conf.d/$instancefile" \
++            "etc/apache2/conf.d/$instancefile" \
+             "var/lib/koha/$name" \
+             "var/log/koha/$name"
+ 

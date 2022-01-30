@@ -1,0 +1,61 @@
+---
+- name: Get active apache modules
+  command: apache2ctl -M
+  register: apache_modules
+  become: yes
+  
+- name: Enable mpm_itk module
+  lineinfile:
+    path: /etc/sysconfig/apache2
+    regexp: '^APACHE_MODULES="(.*)"$'
+    line: 'APACHE_MODULES="\1 mpm_itk"'
+    backrefs: yes
+  become: yes
+  when: '"mpm_itk_module" not in apache_modules.stdout'
+  notify:
+    - Restart Apache
+    
+- name: Enable mod_rewrite, mod_proxy, mod_proxy_http and mod_version
+  lineinfile:
+    path: /etc/sysconfig/apache2
+    regexp: '^APACHE_MODULES="(.*)"$'
+    line: 'APACHE_MODULES="\1 {{ item }}"'
+    backrefs: yes
+  become: yes
+  when: '"{{ item }}_module" not in apache_modules.stdout'
+  with_items:
+    - version
+    - rewrite
+    # Proxy must be loaded before proxy_http
+    - proxy
+    - proxy_http
+  notify:
+    - Restart Apache
+    
+- name: Use mpm_prefork
+  lineinfile:
+    path: /etc/sysconfig/apache2
+    regexp: '^APACHE_MPM=".*"$'
+    line: 'APACHE_MPM="prefork"'
+  become: yes
+  notify:
+    - Restart Apache
+  
+- name: Copy Koha systemd services
+  copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+  with_fileglob: "../services/*.service"
+  become: yes
+  
+- name: Allow access to Koha directory from Apache
+  blockinfile:
+    path: /etc/apache2/conf.d/koha.conf
+    block: |
+      <Directory /usr/share/koha>
+          Require all granted
+      </Directory>
+    create: yes
+  become: yes
+  notify:
+    - Restart Apache

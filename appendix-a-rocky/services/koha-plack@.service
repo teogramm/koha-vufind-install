@@ -1,0 +1,17 @@
+[Unit]
+Description='Pack server for %I Koha Library'
+Requires=koha-create-dirs@%i.service
+After=koha-create-dirs@%i.service
+
+[Service]
+User=%i-koha
+Type=forking
+Environment=PERL5LIB="/usr/share/koha/lib"
+Environment=KOHA_CONF="/etc/koha/sites/%i/koha-conf.xml"
+Environment=KOHA_HOME="/usr/share/koha"
+WorkingDirectory=~
+PIDFile=/var/run/koha/%i/plack.pid
+ExecStart=/usr/bin/starman -E deployment --socket /var/run/koha/%i/plack.sock -M FindBin --max-requests 50 --workers 2 --user=%i-koha --group %i-koha --pid /var/run/koha/%i/plack.pid --daemonize --access-log /var/log/koha/%i/plack.log --error-log /var/log/koha/%i/plack-error.log /etc/koha/plack.psgi
+
+[Install]
+WantedBy=multi-user.target

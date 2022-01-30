@@ -1,0 +1,243 @@
+---
+- name: Install non-perl dependencies
+  community.general.zypper:
+    name:
+      - apache2
+      - idzebra
+      - idzebra-devel
+      - memcached
+      - rabbitmq-server
+      # Required to build perl modules
+      - gcc
+      - make
+      - yaz
+      - libyaz5
+      - libyaz-devel
+      - libuuid-devel
+      - fribidi
+      - fribidi-devel
+      # Reqired by Koha scripts
+      - pwgen
+      - xmlstarlet
+      - lynx
+      - w3m
+      - lsb-release
+      - insserv-compat
+      # Required to patch Koha scripts
+      - patch
+    state: present
+  become: yes
+  
+- name: Add Apache:Modules repo
+  community.general.zypper_repository:
+    repo: https://download.opensuse.org/repositories/Apache:Modules/openSUSE_Leap_15.3/Apache:Modules.repo
+    state: present
+    auto_import_keys: yes
+  become: yes
+  
+- name: Install mpm_itk
+  community.general.zypper:
+    name: apache2-mod_mpm_itk
+    state: present
+  become: yes
+
+- name: Add Perl development project
+  community.general.zypper_repository:
+    repo: https://download.opensuse.org/repositories/devel:/languages:/perl/openSUSE_Leap_15.3/devel:languages:perl.repo
+    state: present
+  become: yes
+  
+- name: Install Perl and Cpanm
+  community.general.zypper: name=perl,perl-App-cpanminus state=present
+  become: yes
+  
+- name: Install newer versions of packages from the Perl development repository
+  community.general.zypper:
+    state: latest
+    name: '*'
+    allow_vendor_change: true
+    extra_args: '-r devel_languages_perl'
+  become: yes
+
+- name: Install Perl and cpanm from the repositories
+  community.general.zypper:
+    name:
+      - perl-Module-CPANfile
+      - perl-Modern-Perl
+    state: present
+  become: yes
+  
+- name: Install Perl packages from the repositories
+  community.general.zypper:
+    name:
+      - perl-Algorithm-CheckDigits
+      - perl-AnyEvent
+      - perl-AnyEvent-HTTP
+      - perl-Archive-Extract
+      - perl-Archive-Zip
+      - perl-Biblio-EndnoteStyle
+      - perl-Business-ISBN
+      - perl-Business-ISSN
+      - perl-Bytes-Random-Secure
+      - perl-Cache-Memcached
+      - perl-CGI
+      - perl-CGI
+      - perl-CGI-Compile
+      - perl-CGI-Emulate-PSGI
+      - perl-CGI-Session
+      - perl-Class-Accessor
+      - perl-Class-Factory-Util
+      - perl-Class-Inspector
+      - perl-Clone
+      - perl-Crypt-Eksblowfish
+      # Required by DBIx::Class::Schema::PopulateMore
+      - perl-DBD-SQLite
+      - perl-Data-ICal
+      - perl-Date-Calc
+      - perl-Date-Manip
+      - perl-DateTime
+      # Required by Test::DBIx::Class
+      - perl-DateTimeX-Easy
+      - perl-DateTime-Event-ICal
+      - perl-DateTime-Format-ICal
+      - perl-DateTime-Format-MySQL
+      - perl-DateTime-TimeZone
+      - perl-DBD-Mock
+      - perl-DBD-mysql
+      - perl-DBD-SQLite2
+      - perl-DBI
+      - perl-DBIx-Class-Schema-Loader
+      - perl-Devel-Cover
+      - perl-Email-Address
+      - perl-Email-Date
+      - perl-Email-MessageID
+      - perl-Email-Sender
+      - perl-Email-Stuffer
+      - perl-Exception-Class
+      - perl-File-Slurp
+      - perl-Font-TTF
+      - perl-GD
+      - perl-GD-Barcode
+      - perl-GraphicsMagick
+      - perl-Gravatar-URL
+      - perl-HTML-Format
+      - perl-HTML-Scrubber
+      # Required by PDF::FromHTML
+      - perl-HTML-Tidy
+      - perl-JSON
+      - perl-JSON-Validator
+      - perl-ldap
+      - perl-ldap
+      - perl-libintl-perl
+      - perl-Lingua-Stem
+      - perl-Lingua-Stem-Snowball
+      - perl-List-MoreUtils
+      - perl-Locale-PO
+      - perl-Log-Log4perl
+      - perl-MARC-Charset
+      - perl-MARC-Record
+      - perl-MARC-XML
+      - perl-MIME-Lite
+      - perl-Module-Pluggable
+      - perl-Mojolicious
+      - perl-Moo
+      - perl-Net-CIDR
+      - perl-Net-Netmask
+      - perl-Net-Server
+      - perl-Net-SFTP-Foreign
+      - perl-Net-Stomp
+      - perl-Net-Z3950-ZOOM
+      - perl-Number-Format
+      - perl-Parallel-ForkManager
+      - perl-PDF-API2
+      - perl-PDF-Reuse
+      - perl-PDF-Table
+      - perl-Plack-Middleware-LogWarn
+      - perl-Plack-Middleware-ReverseProxy
+      - perl-Readonly
+      - perl-Schedule-At
+      - perl-Search-Elasticsearch
+      - perl-Selenium-Remote-Driver
+      - perl-Sereal-Decoder
+      - perl-Sereal-Encoder
+      - perl-SMS-Send
+      # Required for Plack
+      - perl-Starman
+      - perl-String-Random
+      - perl-Sys-CPU
+      - perl-Template-Plugin-JSON-Escape
+      - perl-Template-Toolkit
+      - perl-Test-Deep
+      - perl-Test-Exception
+      - perl-Test-MockModule
+      - perl-Test-MockObject
+      - perl-Test-MockTime
+      - perl-Test-Strict
+      - perl-Test-Warn
+      - perl-Test-WWW-Mechanize
+      - perl-Test-YAML-Valid
+      - perl-Text-CSV
+      - perl-Text-CSV-Encoded
+      - perl-Text-CSV-Unicode
+      - perl-Text-CSV_XS
+      - perl-Text-Iconv
+      - perl-Text-PDF
+      - perl-Text-Unidecode
+      - perl-UNIVERSAL-can
+      - perl-UNIVERSAL-require
+      - perl-UUID
+      - perl-XML-Dumper
+      - perl-XML-LibXML
+      - perl-XML-LibXSLT
+      - perl-XML-RSS
+      - perl-XML-SAX
+      - perl-XML-SAX-Writer
+      - perl-XML-Simple
+      - perl-XML-Writer
+      - perl-YAML-LibYAML
+    state: present
+  become: yes
+
+- name: Install Perl dependencies from CPAN
+  cpanm: name={{item}} system_lib=yes
+  with_items:
+    - Array::Utils
+    - Authen::CAS::Client
+    - Cache::Memcached::Fast::Safe
+    - CGI::Session::Driver::memcached
+    - DBIx::RunSQL
+    # Required by Test::DBIx::Class
+    - DBIx::Class::Schema::PopulateMore
+    - HTTPD::Bench::ApacheBench
+    - HTTP::OAI
+    # Required by JSON::Validator::OpenAPI::Mojolicious
+    - JSON::Validator::Ref
+    # This does not pass tests, so we install it separately
+    #- JSON::Validator::OpenAPI::Mojolicious
+    - Library::CallNumber::LC
+    - Lingua::Ispell
+    - Locale::Currency::Format
+    - Locale::XGettext::TT2
+    - MARC::Record::MiJ
+    - Module::Bundled::Files
+    - Mojo::JWT
+    - Mojolicious::Plugin::OpenAPI
+    - Net::OAuth2::AuthorizationServer
+    - Net::Z3950::SimpleServer
+    - OpenOffice::OODoc
+    - PDF::FromHTML
+    - PDF::Reuse::Barcode
+    - Template::Plugin::HtmlToText
+    - Template::Plugin::Stash
+    - Test::DBIx::Class
+    - Text::Bidi
+    - Time::Fake
+    - WebService::ILS
+    - WWW::CSRF
+  become: yes
+
+- name: Force install JSON::Validator::OpenAPI::Mojolicious
+  command: cpanm --sudo -n JSON::Validator::OpenAPI::Mojolicious
+  become: yes
+  register: cpanm_json_mojolicious
+  changed_when: "'JSON::Validator::OpenAPI::Mojolicious is up to date.' not in cpanm_json_mojolicious.stdout"

@@ -1,0 +1,11 @@
+--- koha-functions.sh	2022-02-01 18:13:02.248000000 +0200
++++ /usr/share/koha/bin/koha-functions.sh	2022-02-01 18:00:59.898000000 +0200
+@@ -32,7 +32,7 @@
+ get_apache_config_for()
+ {
+     local site=$1
+-    local sitefile="/etc/apache2/sites-available/$site"
++    local sitefile="/etc/apache2/vhosts.d/$site"
+ 
+     if is_instance $site; then
+         if [ -f "$sitefile.conf" ]; then

@@ -1,7 +1,7 @@
 # Koha and Vufind Installation Guide
   
 This is a guide on how to install Koha as an ILS (Integrated Library System), along with Vufind as an OPAC (Online Public Access
-Catalog)
+Catalog).
 
 ## Basic info
 In this guide I use 3 separate servers. One server for the MariaDB database, used by both systems, one for Koha 
@@ -467,6 +467,13 @@ many options, however you should at least change ```email``` and ```title```.
 * If you want patrons to exclusively use Vufind for managing lendings, holds etc. set the PublicOPAC option in Koha to 
 disabled. You might not expose it to the internet, but keep it accessible internally as it is required for OAI-PMH to work.
 
+### Enable email
+By default, email is turned off. This is to let you get everything set up before you risk sending unwanted notices to people. To turn email on: 
+
+```
+sudo koha-email-enable libraryname
+```
+
 ### Authenticating directly to Koha
 The default configuration of Vufind has a separate accounts system. A patron needs to create an account in Vufind and then link 
 it to their Koha library account. To allow patrons to log in using their Koha credentials, in the ```config.ini``` file 
@@ -498,6 +505,13 @@ web interface.
 * Enable ```debug = true``` in ```config.ini```. This will display detailed information about ILS driver calls in the web interface.
 * Enable logging with the ```file``` option, under the ```[Logging]``` section of the ```config.ini```. The file entered must 
 be created first and must be writeable by the user apache is running as.
+
+## Appendix A - Installing Koha on Rocky Linux and Ansible.
+
+If you want to install Koha on Rocky Linux or another distro in general, take a look at [Appendix A](appendix-a-rocky/README.md).
+Additionally an Ansible playbook is provided (```install-koha.yaml```), that installs Koha on Rocky Linux (and other RHEL clones)
+or openSUSE.
+
 
 ## Sources
 https://wiki.koha-community.org/wiki/Koha_on_Debian

@@ -1,0 +1,78 @@
+--- debian/scripts/koha-create  2021-12-22 15:53:14.000000000 +0200
++++ /usr/share/koha/bin/koha-create     2022-01-29 23:50:24.723690051 +0200
+@@ -180,33 +180,6 @@
+ check_apache_config()
+ {
+ 
+-    # Check that mpm_itk is installed and enabled
+-    if ! /usr/sbin/apachectl -M | grep -q 'mpm_itk'; then
+-        # Check Apache version
+-        APACHE_DISABLE_MPM_MSG=""
+-        if /usr/sbin/apache2ctl -v | grep -q "Server version: Apache/2.4"; then
+-            # mpm_event or mpm_worker need to be disabled first. mpm_itk depends
+-            # on mpm_prefork, which is enabled if needed. See
+-            # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=734865
+-            if /usr/sbin/apachectl -M | grep -q 'mpm_event'; then
+-                APACHE_DISABLE_MPM_MSG=" sudo a2dismod mpm_event ;"
+-            elif /usr/sbin/apachectl -M | grep -q 'mpm_worker'; then
+-                APACHE_DISABLE_MPM_MSG=" sudo a2dismod mpm_worker ;"
+-            # else mpm_prefork: a2enmod mpm_itk works
+-            fi
+-        # else Apache 2.2: a2enmod mpm_itk works
+-        fi
+-
+-        cat 1>&2  <<EOM
+-
+-Koha requires mpm_itk to be enabled within Apache in order to run.
+-Typically this can be enabled with:
+-
+-   $APACHE_DISABLE_MPM_MSG sudo a2enmod mpm_itk
+-EOM
+-
+-        die
+-    fi
+ 
+     # Check that mod_rewrite is installed and enabled.
+     if ! /usr/sbin/apachectl -M | grep -q 'rewrite_module'; then
+@@ -409,7 +382,7 @@
+     # make koha-list --letsencrypt aware of this instance # could be done by checking apache conf instead
+     echo -e "opacdomain=\"$opacdomain\"\nintradomain=\"$intradomain\"" > /var/lib/koha/$name/letsencrypt.enabled
+     # restart apache with working certs
+-    service apache2 restart
++    systemctl restart httpd
+ }
+ 
+ # Set defaults and read config file, if it exists.
+@@ -758,10 +731,11 @@
+     then
+         die "Group $username already exists."
+     fi
+-    adduser --no-create-home --disabled-login \
+-        --gecos "Koha instance $username" \
++    adduser --no-create-home -s /usr/bin/bash \
+         --home "/var/lib/koha/$name" \
+-        --quiet "$username"
++        "$username"
++    # Lock the account
++    passwd -l "$username"
+ 
+     # Create the site-specific directories.
+     koha-create-dirs "$name"
+@@ -795,7 +769,7 @@
+     fi
+     # Generate and install Apache site-available file and log dir.
+     generate_config_file $APACHE_CONFIGFILE \
+-        "/etc/apache2/sites-available/$name.conf"
++        "/etc/apache2/conf.d/$name.conf"
+     mkdir "/var/log/koha/$name"
+     chown "$username:$username" "/var/log/koha/$name"
+ 
+@@ -889,7 +863,7 @@
+     }; then
+         echo "Warning: problem enabling $name in Apache" >&2
+     fi
+-    service apache2 restart
++    systemctl restart httpd
+ 
+     # Start Zebra.
+     koha-zebra --start "$name"

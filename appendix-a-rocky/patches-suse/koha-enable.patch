@@ -1,0 +1,20 @@
+--- koha-enable	2022-02-01 18:10:58.131000000 +0200
++++ /usr/share/koha/bin/koha-enable	2022-02-01 18:09:35.914000000 +0200
+@@ -30,7 +30,7 @@
+ enable_instance()
+ {
+     local instancename=$1
+-    local instancefile="/etc/apache2/sites-available/$instancename.conf"
++    local instancefile="/etc/apache2/vhosts.d/$instancename.conf"
+ 
+     if ! is_enabled $instancename; then
+         sed -i 's:^\(\s*Include /etc/koha/apache-shared-disable.conf\)$:#\1:' \
+@@ -71,7 +71,7 @@
+ done
+ 
+ if [ "$restart_apache" = "yes" ]; then
+-    /etc/init.d/apache2 restart
++    systemctl restart apache2
+ fi
+ 
+ exit 0

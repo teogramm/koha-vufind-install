@@ -1,0 +1,16 @@
+[Unit]
+Description='Koha indexer for %I'
+Requires=koha-create-dirs@%i.service
+After=koha-create-dirs@%i.service
+
+[Service]
+User=%i-koha
+Type=simple
+Environment=PERL5LIB="/usr/share/koha/lib"
+Environment=KOHA_CONF="/etc/koha/sites/%i/koha-conf.xml"
+Environment=KOHA_HOME="/usr/share/koha"
+PIDFile=/var/run/koha/%i/indexer.pid
+ExecStart=perl /usr/share/koha/bin/migration_tools/rebuild_zebra.pl -daemon -sleep 5
+
+[Install]
+WantedBy=multi-user.target

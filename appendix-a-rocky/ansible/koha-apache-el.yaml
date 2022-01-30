@@ -1,0 +1,37 @@
+---
+- name: Disable mpm_event
+  lineinfile:
+    path: /etc/httpd/conf.modules.d/00-mpm.conf
+    regexp: '^LoadModule\smpm_event_module.*$'
+    line: '#LoadModule mpm_event_module modules/mod_mpm_event.so'
+  become: yes
+    
+- name: Enable mpm_prefork
+  lineinfile:
+    path: /etc/httpd/conf.modules.d/00-mpm.conf
+    regexp: '^#LoadModule\smpm_prefork_module.*$'
+    line: 'LoadModule mpm_prefork_module modules/mod_mpm_prefork.so'
+  become: yes
+  
+- name: Enable mpm_itk
+  lineinfile:
+    path: /etc/httpd/conf.modules.d/00-mpm-itk.conf
+    regexp: '^#\sLoadModule\smpm_itk_module.*$'
+    line: 'LoadModule mpm_itk_module modules/mod_mpm_itk.so'
+  become: yes
+  
+- name: Copy Koha systemd services
+  copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+  with_fileglob: "../services/*.service"
+  become: yes
+  
+- name: Allow access to Koha directory from Apache
+  blockinfile:
+    path: /etc/httpd/conf/httpd.conf
+    block: |
+      <Directory /usr/share/koha>
+          Require all granted
+      </Directory>
+  become: yes

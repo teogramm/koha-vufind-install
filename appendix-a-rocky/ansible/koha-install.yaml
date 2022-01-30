@@ -1,0 +1,190 @@
+---
+- name: Install Koha files and enable the necessary services
+  hosts: koha
+  
+  vars:
+    koha_version: 21.11.02
+    http_service_name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' }}"
+  
+  tasks:
+    - name: Disable SELinux
+      ansible.posix.selinux: state=disabled
+      when: ansible_os_family == "RedHat"
+      
+    - name: Install Koha dependencies
+      include_tasks: koha-deps-rocky.yaml
+      when: ansible_os_family == "RedHat"
+    
+    - name: Install Koha dependencies
+      include_tasks: koha-deps-suse.yaml
+      when: ansible_os_family == "Suse"
+      
+    - name: Enable stomp plugin for RabbitMQ
+      lineinfile:
+        path: /etc/rabbitmq/enabled_plugins
+        line: "[rabbitmq_stomp]."
+        owner: root
+        state: present
+        create: yes
+      become: yes
+      
+    - name: Check if zebra executables exist
+      stat: path=/usr/bin/zebraidx
+      register: zebra_executable
+      
+    - name: Link Zebra executables if they don't exist
+      file: src=/usr/bin/{{ item.src }} dest=/usr/bin/{{ item.dest }} state=link force=yes
+      with_items:
+        - { src: zebraidx-2.0, dest: zebraidx }
+        - { src: zebrasrv-2.0, dest: zebrasrv }
+      when: not zebra_executable.stat.exists
+      become: yes
+       
+    - name: Link Zebra modules
+      file: src=/usr/lib64/idzebra-2.0 dest=/usr/lib/idzebra-2.0 state=link force=yes
+      become: yes
+    
+    - name: Create a group for Koha
+      group: name=koha system=true
+      become: yes
+        
+    - name: Create a user for Koha
+      user: name=koha comment="Koha server" group=koha system=true
+      become: yes
+    
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+        suffix: koha
+      register: koha_tmp
+    
+    - name: Download and unpack Koha tarball
+      unarchive:
+        src: https://download.koha-community.org/koha-latest.tar.gz
+        remote_src: yes
+        dest: "{{ koha_tmp.path }}"
+
+    - name: Install Koha files
+      shell: |
+        PERL_MM_USE_DEFAULT=1 perl Makefile.PL
+        make
+        make install
+      args:
+        chdir: "{{ koha_tmp.path }}/koha-{{ koha_version }}"
+      ignore_errors: yes
+      become: yes
+    
+    - name: Copy Koha cronjobs
+      copy:
+        src: "{{ koha_tmp.path }}/koha-{{ koha_version }}/debian/{{ item.src_file }}"
+        dest: "{{ item.dst_path }}"
+        remote_src: yes
+      with_items:
+        - { src_file: koha-common.cron.daily, dst_path: /etc/cron.daily/koha }
+        - { src_file: koha-common.cron.d, dst_path: /etc/cron.d/koha }
+        - { src_file: koha-common.cron.hourly, dst_path: /etc/cron.hourly/koha }
+        - { src_file: koha-common.cron.monthly, dst_path: /etc/cron.monthly/koha }
+      become: yes
+    
+    - name: Copy /etc/default/koha
+      copy:
+        src: "{{ koha_tmp.path }}/koha-{{ koha_version }}/debian/koha-common.default"
+        dest: /etc/default/koha-common
+        remote_src: yes
+      become: yes
+      
+    - name: Copy logrotate config
+      copy:
+        src: "{{ koha_tmp.path }}/koha-{{ koha_version }}/debian/koha-common.logrotate"
+        dest: /etc/logrotate.d/koha
+        remote_src: yes
+      become: yes
+    
+    - name: Find koha scripts to copy
+      find:
+        paths: "{{ koha_tmp.path }}/koha-{{ koha_version }}/debian/scripts"
+      register: koha_scripts_copy
+      
+    - name: Copy additional Koha scripts
+      copy:
+        src: "{{ item.path }}"
+        dest: /usr/share/koha/bin/
+        mode: 755
+        remote_src: yes
+      with_items: "{{ koha_scripts_copy.files }}"
+      become: yes
+      
+    - name: Patch koha scripts
+      patch:
+        src: "{{ item }}"
+        dest: "/usr/share/koha/bin/{{ item | basename | splitext | first }}"
+        state: present
+      with_fileglob:
+        - "../patches-el/*.patch"
+      when: ansible_os_family == "RedHat"
+      become: yes
+      
+    - name: Patch koha scripts
+      patch:
+        src: "{{ item }}"
+        dest: "/usr/share/koha/bin/{{ item | basename | splitext | first }}"
+        state: present
+      with_fileglob:
+        - "../patches-suse/*.patch"
+      when: ansible_os_family == "Suse"
+      become: yes
+      
+    - name: Find Koha templates to copy
+      find:
+        paths: "{{ koha_tmp.path }}/koha-{{ koha_version }}/debian/templates"
+      register: koha_templates_copy
+      
+    - name: Copy additional Koha templates
+      copy:
+        src: "{{ item.path }}"
+        dest: /etc/koha
+        remote_src: yes
+      with_items: "{{ koha_templates_copy.files }}" 
+      become: yes
+        
+    - name: Find Koha scripts that will be linked to sbin
+      find:
+        paths: /usr/share/koha/bin
+        patterns: "koha-*"
+        excludes: "*.sh"
+      register: koha_scripts
+    
+    - name: Symlink Koha scripts to sbin
+      file:
+        src: "{{ item.path }}"
+        dest: "/usr/sbin/{{ item.path | basename }}"
+        state: link
+      with_items: "{{ koha_scripts.files }}"
+      become: yes
+      
+    - name: Check if starman executable is in /usr/bin
+      stat: path=/usr/bin/starman
+      register: starman_executable
+      
+    - name: Symlink starman to /usr/bin from /usr/local/bin
+      file: src=/usr/local/bin/starman dest=/usr/bin/starman state=link
+      when: not starman_executable.stat.exists
+      
+    - name: Confiugre Apache
+      include_tasks: koha-apache-rocky.yaml
+      when: ansible_os_family == "RedHat"
+      
+    - name: Configure Apache
+      include_tasks: koha-apache-suse.yaml
+      when: ansible_os_family == "Suse"
+      
+    - name: Enable memcached and RabbitMQ
+      systemd: name={{ item }} state=started enabled=yes
+      with_items:
+        - memcached
+        - rabbitmq-server
+      become: yes
+      
+  handlers:
+    - name: Restart Apache
+      service: "name={{ http_service_name }} state=restarted"

@@ -499,6 +499,10 @@ web interface.
 * Enable logging with the ```file``` option, under the ```[Logging]``` section of the ```config.ini```. The file entered must 
 be created first and must be writeable by the user apache is running as.
 
+## Appendix B - Koha in a container
+
+A Dockerfile and some notes for running Koha inside a container are provided in the [appendix-b-docker](appendix-b-docker) folder.
+
 ## Sources
 https://wiki.koha-community.org/wiki/Koha_on_Debian
 

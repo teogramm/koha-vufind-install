@@ -512,6 +512,9 @@ If you want to install Koha on Rocky Linux or another distro in general, take a 
 Additionally an Ansible playbook is provided (```install-koha.yaml```), that installs Koha on Rocky Linux (and other RHEL clones)
 or openSUSE.
 
+## Appendix B - Koha in a container
+
+A Dockerfile and some notes for running Koha inside a container are provided in the [appendix-b-docker](appendix-b-docker) folder.
 
 ## Sources
 https://wiki.koha-community.org/wiki/Koha_on_Debian

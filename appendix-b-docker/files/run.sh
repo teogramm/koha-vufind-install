@@ -5,7 +5,6 @@ export KOHA_INSTANCE=${KOHA_INSTANCE:-default}
 
 export KOHA_INTRANET_PORT=8081
 export KOHA_OPAC_PORT=8080
-export USE_MEMCACHED=${USE_MEMCACHED:-yes}
 export MEMCACHED_SERVERS=${MEMCACHED_SERVERS:-localhost:11211}
 export MYSQL_SERVER=${MYSQL_SERVER:-db}
 export MYSQL_PASSWORD=${MYSQL_PASSWORD:-$(pwgen -s 15 1)}
@@ -154,7 +153,7 @@ then
     envsubst < ./templates/supervisor/z3950.conf > /etc/supervisor/conf.d/z3950.conf
 fi
 
-if [ "${USE_MEMCACHED}" == "localhost:11211" ]
+if [ "${MEMCACHED_SERVERS}" == "localhost:11211" ]
 then
     cp ./templates/supervisor/memcached.conf /etc/supervisor/conf.d/
 fi

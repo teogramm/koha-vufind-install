@@ -169,5 +169,6 @@ service apache2 stop
 koha-indexer --stop ${KOHA_INSTANCE}
 koha-zebra --stop ${KOHA_INSTANCE}
 koha-worker --stop ${KOHA_INSTANCE}
+koha-email-enable ${KOHA_INSTANCE}
 
 supervisord -c /etc/supervisor/supervisord.conf

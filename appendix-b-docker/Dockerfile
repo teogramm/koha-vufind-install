@@ -32,7 +32,6 @@ RUN mkdir /docker
 COPY files/run.sh /docker/run.sh
 COPY templates /docker/templates
 COPY files/rabbitmq.sh /docker/
-COPY files/rabbitmq.conf /etc/supervisor/conf.d
 
 WORKDIR /docker
 

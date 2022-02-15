@@ -12,6 +12,12 @@ export ZEBRA_MARC_FORMAT=${ZEBRA_MARC_FORMAT:-marc21}
 export KOHA_PLACK_NAME=${KOHA_PLACK_NAME:-koha}
 export KOHA_ES_NAME=${KOHA_ES_NAME:-es}
 
+# RabbitMQ settings
+export MB_HOST=${MB_HOST:-localhost}
+export MB_PORT=${MB_PORT:-61613}
+export MB_USER=${MB_USER:-guest}
+export MB_PASS=${MB_PASS:-guest}
+
 
 envsubst < ./templates/koha-sites.conf > /etc/koha/koha-sites.conf
 
@@ -26,6 +32,8 @@ source /usr/share/koha/bin/koha-functions.sh
 if [ "${USE_BACKEND}" = "1" ] || [ "${USE_BACKEND}" = "true" ]
 then
 
+    MB_PARAMS="--mb-host ${MB_HOST} --mb-port ${MB_PORT} --mb-user ${MB_USER} --mb-pass ${MB_PASS}"
+
     # Configure the elasticsearch server
     ES_PARAMS=""
     if [[ "${ELASTICSEARCH_HOST}" != "" ]]
@@ -36,7 +44,7 @@ then
     if ! is_instance ${KOHA_INSTANCE} || [ ! -f "/etc/koha/sites/${KOHA_INSTANCE}/koha_conf.xml" ]
     then
         echo "Executing koha-create for instance ${KOHA_INSTANCE}"
-        koha-create ${ES_PARAMS} --use-db ${KOHA_INSTANCE} | true
+        koha-create ${ES_PARAMS} ${MB_PARAMS} --use-db ${KOHA_INSTANCE} | true
     else
         echo "Creating directories structure"
         koha-create-dirs ${KOHA_INSTANCE}
@@ -156,6 +164,11 @@ fi
 if [ "${MEMCACHED_SERVERS}" == "localhost:11211" ]
 then
     cp ./templates/supervisor/memcached.conf /etc/supervisor/conf.d/
+fi
+
+if [ "${MB_HOST}" == "localhost" ]
+then
+    cp ./templates/supervisor/rabbitmq.conf /etc/supervisor/conf.d/
 fi
 
 # Prevent Plack from throwing permission errors

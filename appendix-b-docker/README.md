@@ -1,13 +1,12 @@
 # Appendix B - Koha on Docker
 
+*Notice: SIP and Z3950 are not functional for now.*
+
 This folder contains a Dockerfile, some additional files and scripts for running Koha.
-The files were based on https://gitlab.com/koha-community/docker/koha-docker, however 
-I have removed some unnecessary files and modified the scripts to support Koha 21.11.
+The files were based on https://gitlab.com/koha-community/docker/koha-docker, however they have been extensively rewrittend to support s6.
 
-Currently, there is an option to use an external Memcached server or run one inside 
-the container.
-
-A RabbitMQ server for Koha is also created inside the container.
+A separate RabbitMQ server with the stomp plugin is required as well as a Memcached server.
+Both can be easily created using the images available on Dockrt Hub.
 
 Check out ```config-main.env``` for the main configuration options and 
 ```config-sip.env``` for SIP specific configuration options.

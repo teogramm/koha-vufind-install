@@ -514,7 +514,7 @@ or openSUSE.
 
 ## Appendix B - Koha in a container
 
-A Dockerfile and some notes for running Koha inside a container are provided in the [appendix-b-docker](appendix-b-docker) folder.
+If you want to run Koha in a container check out my [koha-docker](https://github.com/teogramm/koha-docker) repository.
 
 ## Sources
 https://wiki.koha-community.org/wiki/Koha_on_Debian
